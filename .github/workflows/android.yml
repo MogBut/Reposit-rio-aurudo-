@@ -27,7 +27,7 @@ jobs:
           gradle-version: '8.7'
 
       - name: Extrair ZIP
-        run: unzip -q NoturnoApp-1.zip
+        run: unzip -q "NoturnoApp-1 (2).zip"
 
       - name: Compilar APK
         run: gradle -p NoturnoApp assembleDebug
