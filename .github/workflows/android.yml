@@ -29,6 +29,9 @@ jobs:
       - name: Extrair ZIP
         run: unzip -q "NoturnoApp-1 (2).zip"
 
+      - name: Corrigir dependência
+        run: sed -i "/dadb-android/d" NoturnoApp/app/build.gradle
+
       - name: Compilar APK
         run: gradle -p NoturnoApp assembleDebug
 
