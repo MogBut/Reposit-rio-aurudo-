@@ -1,3 +1,4 @@
+
 name: Gerar APK Noturno
 
 on:
@@ -25,17 +26,39 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Extrair ZIP
-        run: unzip -q "NoturnoApp-1 (2).zip"
+      - name: Extrair ZIP e localizar projeto
+        run: |
+          ZIP_FILE="$(find . -maxdepth 1 -type f -iname '*.zip' -print -quit)"
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERRO: Nenhum arquivo ZIP encontrado."
+            exit 1
+          fi
+
+          mkdir -p extracted
+          unzip -q "$ZIP_FILE" -d extracted
+
+          SETTINGS_FILE="$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)"
+
+          if [ -z "$SETTINGS_FILE" ]; then
+            echo "ERRO: Arquivo settings.gradle não encontrado."
+            exit 1
+          fi
+
+          PROJECT_DIR="$(dirname "$SETTINGS_FILE")"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Corrigir dependência
-        run: sed -i "/dadb-android/d" NoturnoApp/app/build.gradle
+        run: |
+          sed -i '/dadb-android/d' "$PROJECT_DIR/app/build.gradle"
 
       - name: Compilar APK
-        run: gradle -p NoturnoApp assembleDebug
+        run: gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: Salvar APK
         uses: actions/upload-artifact@v4
         with:
           name: Noturno-APK
-          path: NoturnoApp/app/build/outputs/apk/debug/app-debug.apk
+          path: extracted/**/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          
